@@ -1,6 +1,6 @@
 import random
 
-def randomizingAnswers(listOfAnswers):
+def randomizingAnswers(listOfAnswers, usualNumberOfAnswers):
     i = 0
     changedList = []
     numberOfElements = len(listOfAnswers)
@@ -8,6 +8,7 @@ def randomizingAnswers(listOfAnswers):
 
     while True:
         randomNumber = random.randint(0, numberOfElements - 1)
+
         if randomNumber in randomNumberList:
             continue
         else:
@@ -15,26 +16,24 @@ def randomizingAnswers(listOfAnswers):
 
         if len(randomNumberList) == numberOfElements:
             break
-    print(str(randomNumberList) + " muj randomik")
 
     for i in range(numberOfElements):
-        print(str(i) + " elemntik")
-
         checkingString = listOfAnswers[randomNumberList[i]]
 
         if checkingString[0] == "*":
             checkingString = checkingString[1:]
 
         if checkingString in changedList:
-            print("zopakovano" + str(changedList))
-            i = 0
+            continue
         else:
             changedList.append(checkingString)
-            print("pridan novej prvek do randomu" + (str(changedList)))
-            i += 1
 
-    #print(changedList)
-    return changedList
+    if numberOfElements > usualNumberOfAnswers:
+        unusualNumberOfAnswers = True
+        return changedList, unusualNumberOfAnswers
+    else:
+        unusualNumberOfAnswers = False
+        return changedList, unusualNumberOfAnswers
 
 
 file = open("questions.txt", "r")
@@ -46,6 +45,7 @@ maxLineLength = 0
 doubleLineQuestion = False
 sameQuestion = False
 linesList = []
+numberOfQuestions = 0
 
 for line in file:
     file_editing.write(line)
@@ -68,47 +68,72 @@ file_result = open("result.txt", "w")
 
 
 for line in file_editing:
+    # correctly formated (one line) question
     if line[0].isupper() and (line[-2] == "?" or line[-2] == ":" or line[-2] == "…"):
-
-        file_result.write(line)
-
+        file_result.write(str(numberOfQuestions + 1) + ". " + line)
+        numberOfQuestions += 1
         linesList.clear()
         counter = 0
+        moreLineAnswer = False
         questionFile = open("questions.txt", "r")
 
         while True:
-            print("jsem na radku" + str(counter))
             questionLines = questionFile.readline()
 
+            # checking if im on right line in file
             if (counter == fileLength + 1 or sameQuestion) and questionLines != "":
-                print("podminka splnena, jsem na radku " + str(counter))
-                print(questionLines)
+                # checking if im not on new question
                 if questionLines[-2] != "?" and questionLines[-2] != ":" and questionLines[-2] != "…":
-                    print("jdu appendovat")
                     linesList.append(questionLines)
-                    print("muj list" + str(linesList))
                     counter += 1
                     sameQuestion = True
                     continue
-                else:
-                    print("jdu randomovat")
-                    questionLinesChanged = randomizingAnswers(linesList)
-                    print("zrandomovano " + str(questionLinesChanged))
+                # if i get to new question im randomizing the answers and writing them to the result file
+                elif questionLines[-2] != "?" or questionLines[-2] != ":" or questionLines[-2] != "…" or "":
+                    questionLinesChanged, moreLineAnswer = randomizingAnswers(linesList, 4)
+
+                    if moreLineAnswer:
+                        print("Inspect question number: " + str(fileLength + 1))
+
                     for element in questionLinesChanged:
-                        file_result.write(element)
+                        file_result.write("\t" + element)
+
+                    file_result.write("\n")
                     sameQuestion = False
                     break
-            if questionLines == "":
-                break
-            else:
-                print("opakuju sa v elsu")
-                counter += 1
-                print(counter)
+                else:
+                    print("Check this shit on line: " + str(counter + 1))
+
+            counter += 1
         questionFile.close()
 
-    #tohle prepsat na elif
+    # upravit podminku a vytvorit doneLines[] pro liny ktere uz jsou opracovane a neni treba se s nema prcat znova
     elif line[0].isupper() and (line[-2] != "?" and line[-2] != ":" and line[-2] != "…"):
+        counter = 0
         doubleLine = True
+
+        questionFile = open("questions.txt", "r")
+
+        while True:
+            # first line, third line
+            if counter % 2 == 0:
+                firstLine = questionFile.readline()
+            # second, fourth line
+            else:
+                secondLine = questionFile.readline()
+
+            if counter + 1 == fileLength:
+                if secondLine[-2] == "?" or secondLine[-2] == ":" or secondLine[-2] == "…":
+                    makingOneLine = firstLine[0:-2] + " " + secondLine
+                    print(makingOneLine)
+                else:
+                    print("Check if the line is question: " + str(fileLength + 1))
+
+            if firstLine == "":
+                break
+
+
+            counter += 1
     else:
         #print("Error: " + line + " on line:" + str(fileLength))
         kek = 5
