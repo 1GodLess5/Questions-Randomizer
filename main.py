@@ -46,6 +46,7 @@ doubleLineQuestion = False
 sameQuestion = False
 linesList = []
 numberOfQuestions = 0
+doneLines = []
 
 for line in file:
     file_editing.write(line)
@@ -136,7 +137,7 @@ for line in file_editing:
             counter += 1
     else:
         #print("Error: " + line + " on line:" + str(fileLength))
-        kek = 5
+        kek =5
     fileLength += 1
 
 
